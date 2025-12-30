@@ -12,10 +12,17 @@ import {
     ShieldCheck,
     Award,
     ChevronRight,
-    ArrowRight
+    ArrowRight,
+    Lightbulb,
+    Zap,
+    Briefcase,
+    Globe,
+    Sprout,
+    TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
-import { SERVICES } from '@/lib/data';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 const iconMap = {
     Users: <Users />,
@@ -26,10 +33,19 @@ const iconMap = {
     PenTool: <PenTool />,
     BookOpen: <BookOpen />,
     ShieldCheck: <ShieldCheck />,
-    Award: <Award />
+    Award: <Award />,
+    Lightbulb: <Lightbulb />,
+    Zap: <Zap />,
+    Briefcase: <Briefcase />,
+    Globe: <Globe />,
+    Sprout: <Sprout />,
+    TrendingUp: <TrendingUp />,
 };
 
 export default function ServicesPage() {
+    const services = useQuery(api.services.getAll);
+    const publishedServices = services?.filter(s => s.isPublished) || [];
+
     return (
         <div className="bg-white">
             {/* Hero Section */}
@@ -48,39 +64,43 @@ export default function ServicesPage() {
             {/* Services Grid */}
             <section className="section-padding">
                 <div className="max-content">
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-                        {SERVICES.map((service, i) => (
-                            <Link
-                                href={`/services/${service.slug}`}
-                                key={i}
-                                className="animate-reveal group p-8 lg:p-12 bg-soft-grey rounded-[2rem] border border-gray-100 hover:bg-white hover:border-royal-green/30 hover:shadow-2xl transition-all duration-500 flex flex-col h-full"
-                                style={{ animationDelay: `${(i + 1) * 100}ms` }}
-                            >
-                                <div className="w-14 h-14 lg:w-16 lg:h-16 shrink-0 bg-white rounded-2xl flex items-center justify-center text-royal-green mb-8 lg:mb-10 group-hover:bg-royal-green group-hover:text-white transition-all shadow-sm">
-                                    {iconMap[service.iconName as keyof typeof iconMap]}
-                                </div>
-                                <h3 className="text-xl lg:text-2xl mb-4 lg:mb-6 group-hover:text-royal-green transition-colors">{service.title}</h3>
-                                <p className="text-sm lg:text-base text-elegant-grey leading-relaxed mb-8 flex-grow">
-                                    {service.shortDesc}
-                                </p>
-                                {service.focus && (
-                                    <div className="mt-6 lg:mt-8 pt-6 lg:pt-8 border-t border-gray-200">
-                                        <h5 className="text-royal-green font-bold text-[10px] lg:text-xs uppercase tracking-[0.1em] mb-4">Core Focus Areas:</h5>
-                                        <div className="flex flex-wrap gap-2">
-                                            {service.focus.map((item, j) => (
-                                                <span key={j} className="px-3 py-1 bg-white rounded-full text-[10px] lg:text-[11px] font-bold text-charcoal-black border border-gray-200">{item}</span>
-                                            ))}
-                                        </div>
+                    {publishedServices.length === 0 ? (
+                        <div className="text-center py-20 text-elegant-grey">Loading services...</div>
+                    ) : (
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+                            {publishedServices.map((service, i) => (
+                                <Link
+                                    href={`/services/${service.slug}`}
+                                    key={i}
+                                    className="animate-reveal group p-8 lg:p-12 bg-soft-grey rounded-[2rem] border border-gray-100 hover:bg-white hover:border-royal-green/30 hover:shadow-2xl transition-all duration-500 flex flex-col h-full"
+                                    style={{ animationDelay: `${(i + 1) * 100}ms` }}
+                                >
+                                    <div className="w-14 h-14 lg:w-16 lg:h-16 shrink-0 bg-white rounded-2xl flex items-center justify-center text-royal-green mb-8 lg:mb-10 group-hover:bg-royal-green group-hover:text-white transition-all shadow-sm">
+                                        {iconMap[service.iconName as keyof typeof iconMap] || <BarChart4 />}
                                     </div>
-                                )}
-                                <div className="mt-8 lg:mt-10">
-                                    <Button variant="ghost" className="p-0 text-charcoal-black font-bold flex items-center gap-2 group-hover:gap-4 transition-all text-sm lg:text-base">
-                                        Learn More <ChevronRight className="h-4 w-4 text-royal-green" />
-                                    </Button>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
+                                    <h3 className="text-xl lg:text-2xl mb-4 lg:mb-6 group-hover:text-royal-green transition-colors">{service.title}</h3>
+                                    <p className="text-sm lg:text-base text-elegant-grey leading-relaxed mb-8 flex-grow">
+                                        {service.shortDesc}
+                                    </p>
+                                    {service.focus && service.focus.length > 0 && (
+                                        <div className="mt-6 lg:mt-8 pt-6 lg:pt-8 border-t border-gray-200">
+                                            <h5 className="text-royal-green font-bold text-[10px] lg:text-xs uppercase tracking-[0.1em] mb-4">Core Focus Areas:</h5>
+                                            <div className="flex flex-wrap gap-2">
+                                                {service.focus.slice(0, 3).map((item, j) => (
+                                                    <span key={j} className="px-3 py-1 bg-white rounded-full text-[10px] lg:text-[11px] font-bold text-charcoal-black border border-gray-200">{item}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="mt-8 lg:mt-10">
+                                        <Button variant="ghost" className="p-0 text-charcoal-black font-bold flex items-center gap-2 group-hover:gap-4 transition-all text-sm lg:text-base">
+                                            Learn More <ChevronRight className="h-4 w-4 text-royal-green" />
+                                        </Button>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
 

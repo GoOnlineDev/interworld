@@ -1,33 +1,47 @@
-import { SERVICES } from '@/lib/data';
+'use client';
+
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, CheckCircle2, MapPin, Globe, Target } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, MapPin, Globe, Target, Loader2 } from 'lucide-react';
+import { use } from 'react';
 
 interface PageProps {
     params: Promise<{ slug: string }>;
 }
 
-export default async function ServiceDetailPage({ params }: PageProps) {
-    const { slug } = await params;
-    const service = SERVICES.find(s => s.slug === slug);
+export default function ServiceDetailPage({ params }: PageProps) {
+    const { slug } = use(params);
+    const service = useQuery(api.services.getBySlug, { slug });
 
-    if (!service) {
+    // Handle loading state
+    if (service === undefined) {
+        return (
+            <div className="bg-white h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-royal-green" />
+            </div>
+        );
+    }
+
+    // Handle not found
+    if (service === null) {
         notFound();
     }
 
     return (
         <div className="bg-white">
             {/* Header Section */}
-            <section className="pt-32 pb-16 lg:pt-40 lg:pb-20 bg-soft-grey border-b border-gray-100">
+            <section className="pt-28 pb-12 lg:pt-40 lg:pb-20 bg-soft-grey border-b border-gray-100">
                 <div className="max-content">
-                    <Link href="/services" className="text-elegant-grey hover:text-royal-green flex items-center gap-2 mb-8 lg:mb-10 transition-colors group text-sm font-bold uppercase tracking-widest">
+                    <Link href="/services" className="text-elegant-grey hover:text-royal-green flex items-center gap-2 mb-6 lg:mb-10 transition-colors group text-xs lg:text-sm font-bold uppercase tracking-widest">
                         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Back to Services
                     </Link>
                     <div className="max-w-4xl animate-reveal">
-                        <span className="text-royal-green font-bold uppercase tracking-widest text-[10px] lg:text-xs mb-6 block">Service Expertise</span>
-                        <h1 className="mb-6 lg:mb-8 font-serif leading-tight">{service.title}</h1>
-                        <p className="text-lg lg:text-body-large text-elegant-grey max-w-2xl leading-relaxed">
+                        <span className="text-royal-green font-bold uppercase tracking-widest text-[10px] lg:text-xs mb-4 lg:mb-6 block">Service Expertise</span>
+                        <h1 className="mb-4 lg:mb-8 font-serif leading-tight text-2xl lg:text-5xl">{service.title}</h1>
+                        <p className="text-base lg:text-body-large text-elegant-grey max-w-2xl leading-relaxed">
                             {service.shortDesc}
                         </p>
                     </div>
@@ -42,12 +56,12 @@ export default async function ServiceDetailPage({ params }: PageProps) {
                         <div className="lg:col-span-2 space-y-12 lg:space-y-16 animate-reveal">
                             <div>
                                 <h2 className="text-2xl lg:text-3xl mb-6 lg:mb-8 font-serif">How We Deliver Value</h2>
-                                <p className="text-base lg:text-lg text-elegant-grey leading-relaxed">
+                                <p className="text-base lg:text-lg text-elegant-grey leading-relaxed whitespace-pre-line">
                                     {service.fullDesc}
                                 </p>
                             </div>
 
-                            {service.focus && (
+                            {service.focus && service.focus.length > 0 && (
                                 <div className="p-8 lg:p-12 bg-charcoal-black text-white rounded-[2.5rem] lg:rounded-[3rem] shadow-2xl relative overflow-hidden">
                                     <div className="relative z-10">
                                         <h3 className="text-white text-xl lg:text-2xl mb-8 lg:mb-10 flex items-center gap-3 font-bold uppercase tracking-widest">

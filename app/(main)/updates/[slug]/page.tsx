@@ -1,43 +1,57 @@
-import { UPDATES } from '@/lib/data';
+'use client';
+
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, User, Share2, Tag } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Share2, Tag, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { use } from 'react';
 
 interface PageProps {
     params: Promise<{ slug: string }>;
 }
 
-export default async function UpdateDetailPage({ params }: PageProps) {
-    const { slug } = await params;
-    const update = UPDATES.find(u => u.slug === slug);
+export default function UpdateDetailPage({ params }: PageProps) {
+    const { slug } = use(params);
+    const update = useQuery(api.updates.getBySlug, { slug });
 
-    if (!update) {
+    // Handle loading
+    if (update === undefined) {
+        return (
+            <div className="bg-white h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-royal-green" />
+            </div>
+        );
+    }
+
+    // Handle not found
+    if (update === null) {
         notFound();
     }
 
     return (
-        <div className="bg-white pb-32">
+        <div className="bg-white pb-24 lg:pb-32">
             {/* Hero Header */}
-            <section className="pt-32 pb-16 lg:pt-40 lg:pb-24 bg-soft-grey border-b border-gray-100">
+            <section className="pt-28 pb-12 lg:pt-40 lg:pb-24 bg-soft-grey border-b border-gray-100">
                 <div className="max-content">
-                    <Link href="/updates" className="text-elegant-grey hover:text-royal-green flex items-center gap-2 mb-8 lg:mb-12 transition-colors group text-sm font-bold uppercase tracking-widest">
+                    <Link href="/updates" className="text-elegant-grey hover:text-royal-green flex items-center gap-2 mb-6 lg:mb-12 transition-colors group text-xs lg:text-sm font-bold uppercase tracking-widest">
                         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Back to Newsroom
                     </Link>
                     <div className="max-w-4xl animate-reveal">
-                        <div className="flex flex-wrap items-center gap-4 mb-6 lg:mb-8">
-                            <span className="px-3 py-1.5 lg:px-4 lg:py-1.5 bg-royal-green text-white rounded-lg text-[10px] lg:text-xs font-bold uppercase tracking-widest">
+                        <div className="flex flex-wrap items-center gap-3 lg:gap-4 mb-4 lg:mb-8">
+                            <span className="px-3 py-1 lg:px-4 lg:py-1.5 bg-royal-green text-white rounded-lg text-[10px] lg:text-xs font-bold uppercase tracking-widest">
                                 {update.category}
                             </span>
                             <div className="flex items-center gap-2 text-[10px] lg:text-sm text-elegant-grey font-bold uppercase tracking-widest">
-                                <Calendar className="h-4 w-4 text-royal-green" /> {update.date}
+                                <Calendar className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-royal-green" /> {new Date(update._creationTime).toLocaleDateString()}
                             </div>
                         </div>
-                        <h1 className="mb-6 lg:mb-8 font-serif leading-tight">
+                        <h1 className="mb-4 lg:mb-8 font-serif leading-tight text-2xl lg:text-5xl">
                             {update.title}
                         </h1>
-                        <p className="text-lg lg:text-body-large text-elegant-grey max-w-2xl leading-relaxed italic">
+                        <p className="text-base lg:text-body-large text-elegant-grey max-w-2xl leading-relaxed italic">
                             {update.excerpt}
                         </p>
                     </div>
@@ -66,7 +80,7 @@ export default async function UpdateDetailPage({ params }: PageProps) {
                             <p className="font-bold text-charcoal-black text-lg lg:text-xl">
                                 In a significant milestone for innovation in East Africa, Interworld has reached a new height in its mission to transform developmental insights into lasting impact.
                             </p>
-                            <p>
+                            <p className="whitespace-pre-line">
                                 {update.content}
                             </p>
                             <p>

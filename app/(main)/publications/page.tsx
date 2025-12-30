@@ -13,7 +13,8 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { PUBLICATIONS } from '@/lib/data';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 const categories = [
     "All",
@@ -36,9 +37,12 @@ const iconMap = {
 export default function PublicationsPage() {
     const [activeCategory, setActiveCategory] = useState("All");
 
+    const publications = useQuery(api.publications.getAll);
+    const publishedPubs = publications?.filter(p => p.isPublished) || [];
+
     const filteredPubs = activeCategory === "All"
-        ? PUBLICATIONS
-        : PUBLICATIONS.filter(p => p.category === activeCategory);
+        ? publishedPubs
+        : publishedPubs.filter(p => p.category === activeCategory);
 
     return (
         <div className="bg-white">

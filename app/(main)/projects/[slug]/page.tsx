@@ -1,28 +1,42 @@
-import { PROJECTS } from '@/lib/data';
+'use client';
+
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { use } from 'react';
 
 interface PageProps {
     params: Promise<{ slug: string }>;
 }
 
-export default async function ProjectDetailPage({ params }: PageProps) {
-    const { slug } = await params;
-    const project = PROJECTS.find(p => p.slug === slug);
+export default function ProjectDetailPage({ params }: PageProps) {
+    const { slug } = use(params);
+    const project = useQuery(api.projects.getBySlug, { slug });
 
-    if (!project) {
+    // Handle loading
+    if (project === undefined) {
+        return (
+            <div className="bg-white h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-royal-green" />
+            </div>
+        );
+    }
+
+    // Handle not found
+    if (project === null) {
         notFound();
     }
 
     return (
         <div className="bg-white">
             {/* Hero Section */}
-            <section className="relative h-[60vh] lg:h-[70vh] flex items-end pb-12 lg:pb-24 overflow-hidden">
+            <section className="relative min-h-[60vh] lg:h-[70vh] flex items-end pb-8 lg:pb-24 overflow-hidden pt-24 lg:pt-0">
                 <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal-black via-charcoal-black/40 to-transparent z-10" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal-black via-charcoal-black/60 to-charcoal-black/20 z-10" />
                     <Image
                         src={project.image}
                         alt={project.title}
@@ -32,14 +46,14 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                     />
                 </div>
                 <div className="max-content relative z-20 w-full">
-                    <Link href="/projects" className="text-white/60 hover:text-white flex items-center gap-2 mb-6 lg:mb-8 transition-colors group text-sm font-bold uppercase tracking-widest">
+                    <Link href="/projects" className="text-white/60 hover:text-white flex items-center gap-2 mb-4 lg:mb-8 transition-colors group text-xs lg:text-sm font-bold uppercase tracking-widest">
                         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Back to Projects
                     </Link>
                     <div className="max-w-4xl animate-reveal">
-                        <h1 className="!text-white mb-6 lg:mb-8 underline underline-offset-[12px] decoration-royal-green/50 leading-tight">
+                        <h1 className="!text-white mb-4 lg:mb-8 underline underline-offset-[8px] lg:underline-offset-[12px] decoration-royal-green/50 leading-tight text-2xl lg:text-5xl">
                             {project.title}
                         </h1>
-                        <p className="text-white/80 text-lg lg:text-body-large max-w-2xl leading-relaxed">
+                        <p className="text-white/80 text-base lg:text-body-large max-w-2xl leading-relaxed">
                             {project.shortDesc}
                         </p>
                     </div>

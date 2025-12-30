@@ -1,25 +1,70 @@
 'use client';
 
-import { useState } from 'react';
-import { FAQS } from '@/lib/data';
-import { Plus, Minus, Search, MessageCircle } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Minus, Search, MessageCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+
+type FAQItem = {
+    _id: string;
+    question: string;
+    answer: string;
+    category: string;
+    order?: number;
+    isPublished: boolean;
+};
 
 export default function FAQPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [openIndex, setOpenIndex] = useState<string | null>(null);
 
-    const filteredFaqs = FAQS.map(category => ({
-        ...category,
-        items: category.items.filter(item =>
-            item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.answer.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    })).filter(category => category.items.length > 0);
+    const faqs = useQuery(api.faqs.getAll);
+    const publishedFaqs = faqs?.filter((f: FAQItem) => f.isPublished) || [];
 
-    const toggleFaq = (index: string) => {
-        setOpenIndex(openIndex === index ? null : index);
+    // Group FAQs by category
+    const groupedFaqs = useMemo(() => {
+        const groups: { [key: string]: FAQItem[] } = {};
+
+        publishedFaqs.forEach(faq => {
+            if (!groups[faq.category]) {
+                groups[faq.category] = [];
+            }
+            groups[faq.category].push(faq);
+        });
+
+        // Ensure proper ordering within groups
+        Object.keys(groups).forEach(key => {
+            groups[key].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        });
+
+        return groups;
+    }, [publishedFaqs]);
+
+    // Filter based on search
+    const filteredGroups = useMemo(() => {
+        if (!searchQuery.trim()) return groupedFaqs;
+
+        const filtered: { [key: string]: FAQItem[] } = {};
+        const query = searchQuery.toLowerCase();
+
+        Object.entries(groupedFaqs).forEach(([category, items]) => {
+            const matchingItems = items.filter(item =>
+                item.question.toLowerCase().includes(query) ||
+                item.answer.toLowerCase().includes(query)
+            );
+
+            if (matchingItems.length > 0) {
+                filtered[category] = matchingItems;
+            }
+        });
+
+        return filtered;
+    }, [groupedFaqs, searchQuery]);
+
+    const toggleFaq = (id: string) => {
+        setOpenIndex(openIndex === id ? null : id);
     };
 
     return (
@@ -52,22 +97,25 @@ export default function FAQPage() {
             {/* FAQ List */}
             <section className="section-padding">
                 <div className="max-content max-w-4xl">
-                    {filteredFaqs.length > 0 ? (
+                    {!faqs ? (
+                        <div className="flex items-center justify-center py-20">
+                            <Loader2 className="h-8 w-8 animate-spin text-royal-green" />
+                        </div>
+                    ) : Object.keys(filteredGroups).length > 0 ? (
                         <div className="space-y-16">
-                            {filteredFaqs.map((category, catIdx) => (
+                            {Object.entries(filteredGroups).map(([category, items], catIdx) => (
                                 <div key={catIdx} className="animate-reveal">
-                                    <h2 className="text-2xl font-serif mb-8 text-charcoal-black">{category.category}</h2>
+                                    <h2 className="text-2xl font-serif mb-8 text-charcoal-black">{category}</h2>
                                     <div className="space-y-4">
-                                        {category.items.map((item, itemIdx) => {
-                                            const id = `${catIdx}-${itemIdx}`;
-                                            const isOpen = openIndex === id;
+                                        {items.map((item) => {
+                                            const isOpen = openIndex === item._id;
                                             return (
                                                 <div
-                                                    key={itemIdx}
+                                                    key={item._id}
                                                     className={`group border border-gray-100 rounded-2xl overflow-hidden transition-all duration-300 ${isOpen ? 'bg-soft-grey ring-1 ring-royal-green/10' : 'bg-white hover:border-royal-green/20'}`}
                                                 >
                                                     <button
-                                                        onClick={() => toggleFaq(id)}
+                                                        onClick={() => toggleFaq(item._id)}
                                                         className="w-full flex items-center justify-between p-6 lg:p-8 text-left"
                                                     >
                                                         <span className={`text-lg lg:text-xl font-bold transition-colors ${isOpen ? 'text-royal-green' : 'text-charcoal-black group-hover:text-royal-green'}`}>

@@ -10,12 +10,6 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-    PILLARS,
-    SERVICES,
-    PROJECTS,
-    PUBLICATIONS
-} from '@/lib/data';
-import {
     Users,
     Search,
     BarChart4,
@@ -24,9 +18,16 @@ import {
     PenTool,
     ShieldCheck,
     Award,
-    Lightbulb
+    Lightbulb,
+    Zap,
+    Briefcase,
+    Globe,
+    Sprout,
+    TrendingUp
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 const iconMap = {
     Users: <Users className="h-6 w-6" />,
@@ -39,7 +40,36 @@ const iconMap = {
     ShieldCheck: <ShieldCheck className="h-6 w-6" />,
     Award: <Award className="h-6 w-6" />,
     Lightbulb: <Lightbulb className="h-6 w-6" />,
+    Zap: <Zap className="h-6 w-6" />,
+    Briefcase: <Briefcase className="h-6 w-6" />,
+    Globe: <Globe className="h-6 w-6" />,
+    Sprout: <Sprout className="h-6 w-6" />,
+    TrendingUp: <TrendingUp className="h-6 w-6" />,
 };
+
+// Pillars usually remain static as core identity
+const PILLARS = [
+    {
+        title: "Innovation",
+        desc: "Pioneering new solutions.",
+        icon: "Lightbulb"
+    },
+    {
+        title: "Excellence",
+        desc: "Delivering world-class quality.",
+        icon: "Award"
+    },
+    {
+        title: "Integrity",
+        desc: "Upholding highest standards.",
+        icon: "ShieldCheck"
+    },
+    {
+        title: "Collaboration",
+        desc: "Working together for impact.",
+        icon: "Users"
+    }
+];
 
 const HERO_SLIDES = [
     {
@@ -70,6 +100,18 @@ const HERO_SLIDES = [
 
 export default function HomePage() {
     const [currentSlide, setCurrentSlide] = useState(0);
+
+    // Fetch data from Convex
+    const services = useQuery(api.services.getAll);
+    const projects = useQuery(api.projects.getAll);
+    const publications = useQuery(api.publications.getAll);
+    const partners = useQuery(api.partners.getAll);
+
+    // Filter for published items and take slices
+    const featuredServices = services?.filter(s => s.isPublished).slice(0, 8) || [];
+    const featuredProjects = projects?.filter(p => p.isPublished).slice(0, 3) || [];
+    const recentPublications = publications?.filter(p => p.isPublished).slice(0, 3) || [];
+    const displayedPartners = partners?.filter(p => p.isPublished) || [];
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -219,7 +261,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {SERVICES.slice(0, 8).map((service, i) => (
+                        {featuredServices.map((service, i) => (
                             <Link
                                 href={`/services/${service.slug}`}
                                 key={i}
@@ -227,7 +269,7 @@ export default function HomePage() {
                                 style={{ animationDelay: `${(i + 1) * 100}ms` }}
                             >
                                 <div className="text-royal-green mb-6 group-hover:scale-110 transition-transform">
-                                    {iconMap[service.iconName as keyof typeof iconMap]}
+                                    {iconMap[service.iconName as keyof typeof iconMap] || <BarChart4 />}
                                 </div>
                                 <h4 className="text-lg font-semibold leading-tight">{service.title}</h4>
                             </Link>
@@ -241,7 +283,7 @@ export default function HomePage() {
                 <div className="max-content">
                     <h2 className="mb-20 animate-reveal">Featured Projects</h2>
                     <div className="grid lg:grid-cols-3 gap-10">
-                        {PROJECTS.map((project, i) => (
+                        {featuredProjects.map((project, i) => (
                             <div key={i} className="animate-reveal bg-white rounded-[2rem] overflow-hidden shadow-lg group hover:-translate-y-2 transition-all duration-500" style={{ animationDelay: `${(i + 1) * 200}ms` }}>
                                 <div className="h-64 relative overflow-hidden">
                                     <Image
@@ -264,6 +306,9 @@ export default function HomePage() {
                             </div>
                         ))}
                     </div>
+                    {featuredProjects.length === 0 && (
+                        <div className="text-center text-gray-500 py-10">No projects to display yet.</div>
+                    )}
                     <div className="mt-16 text-center animate-reveal">
                         <Link href="/projects">
                             <Button variant="outline" className="rounded-full px-12 h-14 border-charcoal-black hover:bg-charcoal-black hover:text-white transition-all text-lg font-semibold">
@@ -288,7 +333,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                        {PUBLICATIONS.slice(0, 3).map((pub, i) => (
+                        {recentPublications.map((pub, i) => (
                             <Link
                                 href={`/publications/${pub.slug}`}
                                 key={i}
@@ -315,6 +360,9 @@ export default function HomePage() {
                             </Link>
                         ))}
                     </div>
+                    {recentPublications.length === 0 && (
+                        <div className="text-center text-gray-500 py-10">No publications to display yet.</div>
+                    )}
                 </div>
             </section>
 
@@ -322,12 +370,23 @@ export default function HomePage() {
             <section className="py-20 border-y border-gray-100">
                 <div className="max-content">
                     <h4 className="text-center text-elegant-grey uppercase tracking-[0.3em] text-xs mb-12">Our Trusted Partners</h4>
-                    <div className="flex flex-wrap justify-center items-center gap-16 lg:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-700">
-                        <div className="text-xl font-bold">AGRA</div>
-                        <div className="text-xl font-bold">UN Habitat</div>
-                        <div className="text-xl font-bold">FAO</div>
-                        <div className="text-xl font-bold">Makerere University</div>
-                        <div className="text-xl font-bold">GIZ</div>
+                    <div className="flex flex-wrap justify-center items-center gap-16 lg:gap-24">
+                        {displayedPartners.map((partner, i) => (
+                            <div key={i} className="opacity-50 grayscale hover:grayscale-0 transition-all duration-500 hover:scale-110 cursor-default">
+                                {partner.logo ? (
+                                    <div className="relative h-12 w-32">
+                                        <Image
+                                            src={partner.logo}
+                                            alt={partner.name}
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                ) : (
+                                    <span className="text-xl font-bold">{partner.name}</span>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>

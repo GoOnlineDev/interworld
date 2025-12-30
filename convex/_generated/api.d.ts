@@ -8,13 +8,33 @@
  * @module
  */
 
+import type * as contacts from "../contacts.js";
+import type * as faqs from "../faqs.js";
+import type * as gallery from "../gallery.js";
+import type * as partners from "../partners.js";
+import type * as pillars from "../pillars.js";
+import type * as projects from "../projects.js";
+import type * as publications from "../publications.js";
+import type * as services from "../services.js";
+import type * as updates from "../updates.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  contacts: typeof contacts;
+  faqs: typeof faqs;
+  gallery: typeof gallery;
+  partners: typeof partners;
+  pillars: typeof pillars;
+  projects: typeof projects;
+  publications: typeof publications;
+  services: typeof services;
+  updates: typeof updates;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.

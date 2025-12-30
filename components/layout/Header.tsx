@@ -49,7 +49,7 @@ export default function Header() {
 
     return (
         <header className="fixed inset-x-0 top-0 z-50 transition-all duration-500 p-4 lg:p-6 flex justify-center pointer-events-none">
-            <nav className={`flex w-full max-w-7xl items-center justify-between px-6 py-2 lg:px-10 pointer-events-auto rounded-[2.5rem] transition-all duration-500 ${scrolled ? 'bg-white/90 backdrop-blur-xl shadow-2xl shadow-black/5 border border-white/20' : 'bg-[#F5F7F8]/50 backdrop-blur-sm'}`} aria-label="Global">
+            <nav className="flex w-full max-w-7xl items-center justify-between px-6 py-2 lg:px-10 pointer-events-auto rounded-[2.5rem] transition-all duration-500 bg-white shadow-xl shadow-black/5 border border-gray-100" aria-label="Global">
                 <div className="flex lg:flex-1">
                     <Link href="/" className="-m-1.5 p-1.5 flex items-center">
                         <Image

@@ -2,9 +2,37 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Mail, Phone, MapPin, Globe, ArrowRight } from 'lucide-react';
+import { Mail, Phone, MapPin, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 export default function ContactPage() {
+    const submitContact = useMutation(api.contacts.submit);
+
+    const [formData, setFormData] = useState({
+        fullName: '',
+        email: '',
+        subject: '',
+        message: ''
+    });
+
+    const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('submitting');
+
+        try {
+            await submitContact(formData);
+            setStatus('success');
+            setFormData({ fullName: '', email: '', subject: '', message: '' });
+        } catch (error) {
+            console.error(error);
+            setStatus('error');
+        }
+    };
+
     return (
         <div className="bg-white min-h-screen">
             {/* Hero Section */}
@@ -63,29 +91,87 @@ export default function ContactPage() {
                             <Card className="p-8 lg:p-16 rounded-[2.5rem] lg:rounded-[4rem] shadow-2xl border border-gray-100 bg-white">
                                 <CardContent className="p-0">
                                     <h2 className="text-3xl lg:text-4xl mb-8 lg:mb-10 leading-tight">Send a Message</h2>
-                                    <form className="space-y-6 lg:space-y-8">
-                                        <div className="grid sm:grid-cols-2 gap-6 lg:gap-8">
-                                            <div className="space-y-2 lg:space-y-3">
-                                                <label className="text-[10px] lg:text-xs font-bold text-charcoal-black uppercase tracking-widest">Full Name</label>
-                                                <input type="text" className="w-full px-6 lg:px-8 py-4 lg:py-5 rounded-2xl bg-soft-grey border border-transparent focus:border-royal-green focus:bg-white outline-none transition-all text-sm lg:text-base" placeholder="John Doe" />
+
+                                    {status === 'success' ? (
+                                        <div className="flex flex-col items-center justify-center text-center py-10 space-y-4 animate-in fade-in zoom-in duration-500">
+                                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-4">
+                                                <CheckCircle2 className="h-10 w-10" />
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-charcoal-black">Message Sent!</h3>
+                                            <p className="text-elegant-grey max-w-xs mx-auto">
+                                                Thank you for reaching out. Our team will get back to you shortly.
+                                            </p>
+                                            <Button
+                                                onClick={() => setStatus('idle')}
+                                                className="mt-6 rounded-full"
+                                                variant="outline"
+                                            >
+                                                Send Another Message
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
+                                            <div className="grid sm:grid-cols-2 gap-6 lg:gap-8">
+                                                <div className="space-y-2 lg:space-y-3">
+                                                    <label className="text-[10px] lg:text-xs font-bold text-charcoal-black uppercase tracking-widest">Full Name</label>
+                                                    <input
+                                                        required
+                                                        type="text"
+                                                        value={formData.fullName}
+                                                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                                        className="w-full px-6 lg:px-8 py-4 lg:py-5 rounded-2xl bg-soft-grey border border-transparent focus:border-royal-green focus:bg-white outline-none transition-all text-sm lg:text-base"
+                                                        placeholder="John Doe"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2 lg:space-y-3">
+                                                    <label className="text-[10px] lg:text-xs font-bold text-charcoal-black uppercase tracking-widest">Email Address</label>
+                                                    <input
+                                                        required
+                                                        type="email"
+                                                        value={formData.email}
+                                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                        className="w-full px-6 lg:px-8 py-4 lg:py-5 rounded-2xl bg-soft-grey border border-transparent focus:border-royal-green focus:bg-white outline-none transition-all text-sm lg:text-base"
+                                                        placeholder="john@example.com"
+                                                    />
+                                                </div>
                                             </div>
                                             <div className="space-y-2 lg:space-y-3">
-                                                <label className="text-[10px] lg:text-xs font-bold text-charcoal-black uppercase tracking-widest">Email Address</label>
-                                                <input type="email" className="w-full px-6 lg:px-8 py-4 lg:py-5 rounded-2xl bg-soft-grey border border-transparent focus:border-royal-green focus:bg-white outline-none transition-all text-sm lg:text-base" placeholder="john@example.com" />
+                                                <label className="text-[10px] lg:text-xs font-bold text-charcoal-black uppercase tracking-widest">Subject</label>
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    value={formData.subject}
+                                                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                                    className="w-full px-6 lg:px-8 py-4 lg:py-5 rounded-2xl bg-soft-grey border border-transparent focus:border-royal-green focus:bg-white outline-none transition-all text-sm lg:text-base"
+                                                    placeholder="How can we help?"
+                                                />
                                             </div>
-                                        </div>
-                                        <div className="space-y-2 lg:space-y-3">
-                                            <label className="text-[10px] lg:text-xs font-bold text-charcoal-black uppercase tracking-widest">Subject</label>
-                                            <input type="text" className="w-full px-6 lg:px-8 py-4 lg:py-5 rounded-2xl bg-soft-grey border border-transparent focus:border-royal-green focus:bg-white outline-none transition-all text-sm lg:text-base" placeholder="How can we help?" />
-                                        </div>
-                                        <div className="space-y-2 lg:space-y-3">
-                                            <label className="text-[10px] lg:text-xs font-bold text-charcoal-black uppercase tracking-widest">Message</label>
-                                            <textarea rows={5} className="w-full px-6 lg:px-8 py-4 lg:py-5 rounded-2xl bg-soft-grey border border-transparent focus:border-royal-green focus:bg-white outline-none transition-all resize-none text-sm lg:text-base" placeholder="Tell us about your project..."></textarea>
-                                        </div>
-                                        <Button className="w-full h-16 lg:h-20 rounded-2xl text-base lg:text-lg font-bold bg-charcoal-black hover:bg-royal-green shadow-2xl shadow-black/10 transition-all">
-                                            Send Message
-                                        </Button>
-                                    </form>
+                                            <div className="space-y-2 lg:space-y-3">
+                                                <label className="text-[10px] lg:text-xs font-bold text-charcoal-black uppercase tracking-widest">Message</label>
+                                                <textarea
+                                                    required
+                                                    rows={5}
+                                                    value={formData.message}
+                                                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                                    className="w-full px-6 lg:px-8 py-4 lg:py-5 rounded-2xl bg-soft-grey border border-transparent focus:border-royal-green focus:bg-white outline-none transition-all resize-none text-sm lg:text-base"
+                                                    placeholder="Tell us about your project..."
+                                                ></textarea>
+                                            </div>
+
+                                            {status === 'error' && (
+                                                <p className="text-red-500 text-sm text-center">Something went wrong. Please try again.</p>
+                                            )}
+
+                                            <Button
+                                                disabled={status === 'submitting'}
+                                                className="w-full h-16 lg:h-20 rounded-2xl text-base lg:text-lg font-bold bg-charcoal-black hover:bg-royal-green shadow-2xl shadow-black/10 transition-all"
+                                            >
+                                                {status === 'submitting' ? (
+                                                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Sending...</>
+                                                ) : 'Send Message'}
+                                            </Button>
+                                        </form>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>

@@ -52,6 +52,21 @@ export const ourFileRouter = {
       console.log("Partner logo upload complete:", file.ufsUrl);
       return { url: file.ufsUrl, uploadedBy: metadata.uploadedBy };
     }),
+
+  // PDF uploader for publications
+  pdfUploader: f({
+    pdf: {
+      maxFileSize: "32MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async ({ req }) => {
+      return { uploadedBy: "admin" };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("PDF upload complete:", file.ufsUrl);
+      return { url: file.ufsUrl, name: file.name, uploadedBy: metadata.uploadedBy };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
